@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#32136f" />
+    <meta name="description" content="Create and export PORSH Studios invoices as PDF." />
+    <title>PORSH Invoice Generator</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-bar no-print">
+      <div class="app-brand">
+        <img src="PORSH%20logo-02%202.png" alt="PORSH Studios logo" />
+        <div>
+          <p>PORSH Studios</p>
+          <span>Invoice Generator</span>
+        </div>
+      </div>
+      <div class="app-actions">
+        <span class="save-state" id="saveState" aria-live="polite">Saved locally</span>
+        <button class="button button-quiet" id="installButton" type="button" hidden>Install app</button>
+        <button class="button button-quiet" id="resetButton" type="button">Reset</button>
+        <button class="button button-primary" id="pdfButton" type="button">Save as PDF</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="editor no-print" aria-label="Invoice editor">
+        <div class="editor-heading">
+          <p class="eyebrow">Invoice details</p>
+          <h1>Create your invoice</h1>
+          <p>Changes appear instantly and stay on this device.</p>
+        </div>
+
+        <form id="invoiceForm" autocomplete="off">
+          <details open>
+            <summary>Invoice</summary>
+            <div class="field-grid two-columns">
+              <label>Invoice number<input name="invoiceNumber" type="text" /></label>
+              <label>Currency symbol<input name="currencySymbol" type="text" maxlength="4" /></label>
+              <label>Invoice date<input name="invoiceDate" type="date" /></label>
+              <label>Due date<input name="dueDate" type="date" /></label>
+            </div>
+            <label>Payment terms<input name="paymentTerms" type="text" /></label>
+          </details>
+
+          <details open>
+            <summary>Client & project</summary>
+            <label>Client name<input name="clientName" type="text" /></label>
+            <label>Attention / department<input name="clientAttention" type="text" /></label>
+            <label>Client address<textarea name="clientAddress" rows="3"></textarea></label>
+            <div class="field-grid two-columns">
+              <label>Project / job<input name="projectName" type="text" /></label>
+              <label>PO / reference<input name="reference" type="text" /></label>
+            </div>
+          </details>
+
+          <details open>
+            <summary>Items</summary>
+            <div id="itemEditor" class="item-editor"></div>
+            <button class="button button-add" id="addItemButton" type="button">+ Add item</button>
+          </details>
+
+          <details>
+            <summary>Totals & notes</summary>
+            <div class="field-grid two-columns">
+              <label>Discount<input name="discount" type="number" min="0" step="0.01" /></label>
+              <label>Tax rate (%)<input name="taxRate" type="number" min="0" step="0.01" /></label>
+              <label>Tax amount<input name="taxAmount" type="number" min="0" step="0.01" /></label>
+            </div>
+            <label>Notes<textarea name="notes" rows="3"></textarea></label>
+          </details>
+
+          <details>
+            <summary>Payment details</summary>
+            <label>Bank name<input name="bankName" type="text" /></label>
+            <label>Account name<input name="accountName" type="text" /></label>
+            <label>Account number<input name="accountNumber" type="text" /></label>
+            <label>Account currency<input name="accountCurrency" type="text" /></label>
+          </details>
+
+          <details>
+            <summary>Contact & terms</summary>
+            <label>Payee / business name<input name="payeeName" type="text" /></label>
+            <label>Location<input name="payeeAddress" type="text" /></label>
+            <label>Email<input name="email" type="email" /></label>
+            <label>Phone<input name="phone" type="tel" /></label>
+            <label>Terms & conditions<textarea name="terms" rows="6" aria-describedby="termsHint"></textarea></label>
+            <small id="termsHint">Enter one term per line.</small>
+          </details>
+        </form>
+      </aside>
+
+      <section class="preview-area" aria-label="Invoice preview">
+        <div class="preview-toolbar no-print">
+          <span>Live A4 preview</span>
+          <span>Use “Save as PDF” to export</span>
+        </div>
+
+        <article class="invoice-page" id="invoicePage">
+          <section class="invoice-header">
+            <div class="wordmark">
+              <div class="wordmark-name">PORSH</div>
+              <div class="wordmark-studios">STUDIOS</div>
+              <div class="tagline">We are the Architects of Aspirations.</div>
+              <span class="wordmark-line"></span>
+            </div>
+            <img class="invoice-logo" src="PORSH%20logo-02%202.png" alt="" />
+            <div class="invoice-title">
+              <h2>INVOICE</h2>
+              <strong data-preview="invoiceNumber"></strong>
+            </div>
+          </section>
+
+          <div class="invoice-body">
+            <section class="party-grid">
+              <div class="party-block bill-to">
+                <h3>BILL TO</h3>
+                <strong data-preview="clientName"></strong>
+                <p data-preview="clientAttention" data-prefix="Attn: "></p>
+                <p class="pre-line" data-preview="clientAddress"></p>
+              </div>
+              <div class="party-block project-block">
+                <h3>PROJECT / JOB</h3>
+                <p data-preview="projectName"></p>
+                <h3>PO / REFERENCE</h3>
+                <p data-preview="reference"></p>
+              </div>
+              <div class="party-block date-block">
+                <h3>INVOICE DATE</h3>
+                <p data-preview-date="invoiceDate"></p>
+                <h3>DUE DATE</h3>
+                <p data-preview-date="dueDate"></p>
+                <h3>PAYMENT TERMS</h3>
+                <p data-preview="paymentTerms"></p>
+              </div>
+            </section>
+
+            <section class="items-section">
+              <div class="items-heading">
+                <span>DESCRIPTION</span>
+                <span>AMOUNT (GHS)</span>
+              </div>
+              <div id="previewItems" class="preview-items"></div>
+            </section>
+
+            <section class="summary-section">
+              <dl>
+                <div><dt>SUBTOTAL</dt><dd id="subtotalPreview"></dd></div>
+                <div><dt>DISCOUNT</dt><dd id="discountPreview"></dd></div>
+                <div><dt id="taxLabel">TAX (15%)</dt><dd id="taxPreview"></dd></div>
+              </dl>
+              <div class="total-row"><span>TOTAL DUE</span><strong id="totalPreview"></strong></div>
+            </section>
+
+            <section class="notes-section">
+              <h3>NOTES</h3>
+              <p class="pre-line" data-preview="notes"></p>
+            </section>
+
+            <footer class="invoice-footer">
+              <div>
+                <h3>PAYMENT DETAILS</h3>
+                <dl class="details-list">
+                  <div><dt>Bank Name:</dt><dd data-preview="bankName"></dd></div>
+                  <div><dt>Account Name:</dt><dd data-preview="accountName"></dd></div>
+                  <div><dt>Account Number:</dt><dd data-preview="accountNumber"></dd></div>
+                  <div><dt>Currency:</dt><dd data-preview="accountCurrency"></dd></div>
+                </dl>
+              </div>
+              <div>
+                <h3>PLEASE MAKE PAYMENT TO</h3>
+                <p data-preview="payeeName"></p>
+                <p data-preview="payeeAddress"></p>
+                <p data-preview="email"></p>
+                <p data-preview="phone"></p>
+              </div>
+              <div>
+                <h3>TERMS & CONDITIONS</h3>
+                <ul id="termsPreview"></ul>
+              </div>
+            </footer>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <div class="toast no-print" id="toast" role="status" aria-live="polite"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
