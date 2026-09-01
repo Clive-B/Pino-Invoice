@@ -122,8 +122,16 @@ small { color: var(--muted); display: block; margin-top: -7px; margin-bottom: 12
   align-items: start;
   background: linear-gradient(110deg, #f6f0ea 0%, #f3ece5 70%, #f7f2ed 100%);
 }
-.invoice-brand-logo { position: relative; width: 280px; height: 65px; overflow: hidden; margin-top: 1px; }
-.invoice-brand-logo img { position: absolute; width: 335px; height: 335px; max-width: none; left: -28px; top: -137px; object-fit: contain; }
+.invoice-brand-logo { width: 264px; height: 65px; display: flex; align-items: center; gap: 6px; margin-top: 1px; }
+.logo-slice { position: relative; display: block; height: 65px; overflow: hidden; flex: 0 0 auto; }
+.logo-slice img { position: absolute; max-width: none; object-fit: contain; }
+.logo-porsh { width: 100px; }
+.logo-porsh img, .logo-studios img { width: 335px; height: 335px; top: -137px; }
+.logo-porsh img { left: -28.4px; }
+.logo-monogram { width: 25px; height: 31px; transform: translateY(-2px); }
+.logo-monogram img { width: 184px; height: 184px; left: -74.3px; top: -77.2px; }
+.logo-studios { width: 127px; }
+.logo-studios img { left: -182.9px; }
 .invoice-title { text-align: right; color: var(--purple); padding-top: 8px; }
 .invoice-title h2 { margin: 0 0 10px; font-size: 30px; letter-spacing: .07em; }
 .invoice-title strong { display: block; color: #191622; font-size: 16px; white-space: nowrap; }
