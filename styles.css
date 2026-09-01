@@ -141,17 +141,18 @@ small { color: var(--muted); display: block; margin-top: -7px; margin-bottom: 12
 
 .items-section { margin-top: 26px; border: 1px solid #e2e0e3; }
 .items-heading { height: 36px; padding: 0 14px; display: flex; align-items: center; justify-content: space-between; color: white; background: linear-gradient(100deg, #32136f, #3b177d 70%, #2c105f); font-size: 10px; font-weight: 800; }
-.preview-items { height: 316px; display: grid; align-content: stretch; }
+.preview-items { height: 292px; display: grid; align-content: stretch; }
 .preview-item { min-height: 39px; padding: 0 14px; display: grid; grid-template-columns: 1fr 180px; align-items: center; border-bottom: 1px solid #e7e5e8; font-size: 11.5px; }
 .preview-item:last-child { border-bottom: 0; }
 .preview-item span:last-child { text-align: right; white-space: nowrap; }
 .preview-items.dense .preview-item { font-size: 10px; }
 
-.summary-section { width: 328px; margin: 29px 0 0 auto; }
-.summary-section dl { margin: 0; border-top: 1px solid #cfccd2; padding: 14px 14px 9px; }
-.summary-section dl > div { display: grid; grid-template-columns: 1fr 1fr; margin-bottom: 10px; font-size: 10.5px; }
+.summary-section { width: 328px; margin: 24px 0 0 auto; }
+.summary-section dl { margin: 0; border-top: 1px solid #cfccd2; padding: 10px 14px 6px; }
+.summary-section dl > div { display: grid; grid-template-columns: 1fr 1fr; margin-bottom: 5px; font-size: 10px; }
 .summary-section dt, .summary-section dd { margin: 0; }
 .summary-section dd { text-align: right; }
+.summary-section .tax-subtotal-row { border-top: 1px solid #e0dde3; padding-top: 5px; font-weight: 750; }
 .total-row { height: 51px; padding: 0 14px; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(100deg, #3a1778, #2d105f); color: white; font-size: 16px; }
 .total-row strong { font-size: 20px; }
 

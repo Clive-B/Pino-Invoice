@@ -68,9 +68,11 @@
             <summary>Totals & notes</summary>
             <div class="field-grid two-columns">
               <label>Discount<input name="discount" type="number" min="0" step="0.01" /></label>
-              <label>Tax rate (%)<input name="taxRate" type="number" min="0" step="0.01" /></label>
-              <label>Tax amount<input name="taxAmount" type="number" min="0" step="0.01" /></label>
+              <label>NHIL rate (%)<input name="nhilRate" type="number" min="0" step="0.01" /></label>
+              <label>GETFund rate (%)<input name="getFundRate" type="number" min="0" step="0.01" /></label>
+              <label>VAT rate (%)<input name="taxRate" type="number" min="0" step="0.01" /></label>
             </div>
+            <small>Each levy and VAT amount is calculated automatically.</small>
             <label>Notes<textarea name="notes" rows="3"></textarea></label>
           </details>
 
@@ -146,9 +148,12 @@
 
             <section class="summary-section">
               <dl>
-                <div><dt>SUBTOTAL</dt><dd id="subtotalPreview"></dd></div>
+                <div><dt>ITEMS SUBTOTAL</dt><dd id="subtotalPreview"></dd></div>
                 <div><dt>DISCOUNT</dt><dd id="discountPreview"></dd></div>
-                <div><dt id="taxLabel">TAX (15%)</dt><dd id="taxPreview"></dd></div>
+                <div><dt id="nhilLabel">NHIL (2.5%)</dt><dd id="nhilPreview"></dd></div>
+                <div><dt id="getFundLabel">GETFUND (2.5%)</dt><dd id="getFundPreview"></dd></div>
+                <div class="tax-subtotal-row"><dt>TAX SUBTOTAL</dt><dd id="taxSubtotalPreview"></dd></div>
+                <div><dt id="taxLabel">VAT (15%)</dt><dd id="taxPreview"></dd></div>
               </dl>
               <div class="total-row"><span>TOTAL DUE</span><strong id="totalPreview"></strong></div>
             </section>

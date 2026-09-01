@@ -16,6 +16,8 @@ Invoice data is saved only in the browser's local storage. Use **Save as PDF** a
 
 The standard terms and conditions are editable for each invoice. They are restored automatically for the next finalized invoice, and can also be restored manually from the editor.
 
+Taxes are calculated and displayed separately as NHIL, GETFund and VAT. Their percentage rates are editable, and the tax subtotal shows the discounted invoice amount plus the two levies before VAT is added to the total due.
+
 ## Supported devices
 
 - macOS and Windows desktop browsers

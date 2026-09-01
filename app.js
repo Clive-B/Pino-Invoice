@@ -14,8 +14,9 @@ const defaultInvoice = {
   projectName: "Nestlé Sale Corporate Video",
   reference: "PO-45007218",
   discount: 0,
+  nhilRate: 2.5,
+  getFundRate: 2.5,
   taxRate: 15,
-  taxAmount: 0,
   notes: "Thank you for choosing Porsh Studios.\nPayment due within the terms stated above.",
   bankName: "GCB Bank Ltd.",
   accountName: "Porsh Studios",
@@ -115,12 +116,20 @@ function renderPreview() {
   const subtotal = state.items.reduce((sum, item) => sum + positiveNumber(item.amount), 0);
   const discount = positiveNumber(state.discount);
   const taxable = Math.max(0, subtotal - discount);
-  const tax = positiveNumber(state.taxAmount);
-  const total = taxable + tax;
+  const nhil = taxable * positiveNumber(state.nhilRate) / 100;
+  const getFund = taxable * positiveNumber(state.getFundRate) / 100;
+  const taxSubtotal = taxable + nhil + getFund;
+  const tax = taxable * positiveNumber(state.taxRate) / 100;
+  const total = taxSubtotal + tax;
 
   document.querySelector("#subtotalPreview").textContent = money(subtotal);
   document.querySelector("#discountPreview").textContent = money(discount);
-  document.querySelector("#taxLabel").textContent = `TAX (${formatRate(state.taxRate)}%)`;
+  document.querySelector("#nhilLabel").textContent = `NHIL (${formatRate(state.nhilRate)}%)`;
+  document.querySelector("#nhilPreview").textContent = money(nhil);
+  document.querySelector("#getFundLabel").textContent = `GETFUND (${formatRate(state.getFundRate)}%)`;
+  document.querySelector("#getFundPreview").textContent = money(getFund);
+  document.querySelector("#taxSubtotalPreview").textContent = money(taxSubtotal);
+  document.querySelector("#taxLabel").textContent = `VAT (${formatRate(state.taxRate)}%)`;
   document.querySelector("#taxPreview").textContent = money(tax);
   document.querySelector("#totalPreview").textContent = money(total);
 
