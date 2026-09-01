@@ -90,6 +90,37 @@ input, textarea {
   color: var(--ink);
   font-size: 13px;
 }
+.currency-field {
+  width: 100%;
+  min-height: 37px;
+  margin-top: 5px;
+  border: 1px solid #d4ced9;
+  border-radius: 7px;
+  padding: 9px 10px;
+  display: flex;
+  align-items: center;
+  background: #f7f5f8;
+  color: var(--ink);
+  font-size: 13px;
+  cursor: default;
+}
+.money-currency { white-space: nowrap; }
+.cedi-mark {
+  position: relative;
+  display: inline-block;
+  width: .72em;
+  font-family: Arial, sans-serif;
+  line-height: 1;
+}
+.cedi-mark::after {
+  content: "";
+  position: absolute;
+  left: .34em;
+  top: -.08em;
+  bottom: -.08em;
+  width: max(1px, .065em);
+  background: currentColor;
+}
 textarea { resize: vertical; line-height: 1.45; }
 small { color: var(--muted); display: block; margin-top: -7px; margin-bottom: 12px; }
 .field-grid { display: grid; gap: 0 10px; }

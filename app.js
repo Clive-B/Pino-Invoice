@@ -101,7 +101,7 @@ function renderPreview() {
     const description = document.createElement("span");
     const amount = document.createElement("span");
     description.textContent = item.description;
-    amount.textContent = money(item.amount);
+    setMoney(amount, item.amount);
     row.append(description, amount);
     previewItems.append(row);
   });
@@ -122,16 +122,16 @@ function renderPreview() {
   const tax = taxable * positiveNumber(state.taxRate) / 100;
   const total = taxSubtotal + tax;
 
-  document.querySelector("#subtotalPreview").textContent = money(subtotal);
-  document.querySelector("#discountPreview").textContent = money(discount);
+  setMoney(document.querySelector("#subtotalPreview"), subtotal);
+  setMoney(document.querySelector("#discountPreview"), discount);
   document.querySelector("#nhilLabel").textContent = `NHIL (${formatRate(state.nhilRate)}%)`;
-  document.querySelector("#nhilPreview").textContent = money(nhil);
+  setMoney(document.querySelector("#nhilPreview"), nhil);
   document.querySelector("#getFundLabel").textContent = `GETFUND (${formatRate(state.getFundRate)}%)`;
-  document.querySelector("#getFundPreview").textContent = money(getFund);
-  document.querySelector("#taxSubtotalPreview").textContent = money(taxSubtotal);
+  setMoney(document.querySelector("#getFundPreview"), getFund);
+  setMoney(document.querySelector("#taxSubtotalPreview"), taxSubtotal);
   document.querySelector("#taxLabel").textContent = `VAT (${formatRate(state.taxRate)}%)`;
-  document.querySelector("#taxPreview").textContent = money(tax);
-  document.querySelector("#totalPreview").textContent = money(total);
+  setMoney(document.querySelector("#taxPreview"), tax);
+  setMoney(document.querySelector("#totalPreview"), total);
 
   const terms = String(state.terms || "").split("\n").map((line) => line.trim()).filter(Boolean);
   const termsPreview = document.querySelector("#termsPreview");
@@ -143,9 +143,17 @@ function renderPreview() {
   });
 }
 
-function money(value) {
+function setMoney(element, value) {
   const number = positiveNumber(value);
-  return `${String(state.currencySymbol || "").trim() || "GH₵"}${number.toLocaleString("en-GH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const formattedNumber = number.toLocaleString("en-GH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const currency = document.createElement("span");
+  const amount = document.createElement("span");
+  currency.className = "money-currency";
+  currency.setAttribute("aria-hidden", "true");
+  currency.innerHTML = 'GH<span class="cedi-mark">C</span>';
+  amount.textContent = formattedNumber;
+  element.replaceChildren(currency, amount);
+  element.setAttribute("aria-label", `GH₵${formattedNumber}`);
 }
 
 function positiveNumber(value) {
@@ -342,5 +350,5 @@ if ("serviceWorker" in navigator && location.protocol !== "file:") {
     refreshingForUpdate = true;
     window.location.reload();
   });
-  navigator.serviceWorker.register("sw.js?v=8").then((registration) => registration.update());
+  navigator.serviceWorker.register("sw.js?v=9").then((registration) => registration.update());
 }

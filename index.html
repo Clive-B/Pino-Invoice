@@ -7,7 +7,7 @@
     <meta name="description" content="Create and export PORSH Studios invoices as PDF." />
     <title>PORSH Invoice Generator</title>
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css?v=8" />
+    <link rel="stylesheet" href="styles.css?v=9" />
   </head>
   <body>
     <header class="app-bar no-print">
@@ -39,7 +39,10 @@
             <summary>Invoice</summary>
             <div class="field-grid two-columns">
               <label>Invoice number<input name="invoiceNumber" type="text" aria-describedby="invoiceNumberHint" /></label>
-              <label>Currency symbol<input name="currencySymbol" type="text" maxlength="4" /></label>
+              <label>Currency symbol
+                <span class="currency-field" aria-label="GH₵, Ghana cedi"><span aria-hidden="true">GH<span class="cedi-mark">C</span></span></span>
+                <input name="currencySymbol" type="hidden" value="GH₵" />
+              </label>
               <label>Invoice date<input name="invoiceDate" type="date" /></label>
               <label>Due date<input name="dueDate" type="date" /></label>
             </div>
@@ -193,6 +196,6 @@
     </main>
 
     <div class="toast no-print" id="toast" role="status" aria-live="polite"></div>
-    <script src="app.js?v=8"></script>
+    <script src="app.js?v=9"></script>
   </body>
 </html>
