@@ -57,6 +57,7 @@ button, input, textarea { font: inherit; }
 .button-primary:hover { background: #6541a3; }
 .button-quiet { color: white; background: rgba(255,255,255,.1); }
 .button-add { width: 100%; color: var(--purple); background: #eee8f7; border: 1px dashed #ad99cc; }
+.button-restore { width: 100%; color: var(--purple); background: white; border: 1px solid #cfc3df; }
 
 .workspace { display: grid; grid-template-columns: minmax(310px, 380px) minmax(820px, 1fr); min-height: calc(100vh - 72px); }
 

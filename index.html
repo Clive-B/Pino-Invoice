@@ -82,14 +82,15 @@
             <label>Account currency<input name="accountCurrency" type="text" /></label>
           </details>
 
-          <details>
+          <details open>
             <summary>Contact & terms</summary>
             <label>Payee / business name<input name="payeeName" type="text" /></label>
             <label>Location<input name="payeeAddress" type="text" /></label>
             <label>Email<input name="email" type="email" /></label>
             <label>Phone<input name="phone" type="tel" /></label>
             <label>Terms & conditions<textarea name="terms" rows="6" aria-describedby="termsHint"></textarea></label>
-            <small id="termsHint">Enter one term per line.</small>
+            <small id="termsHint">Enter one term per line. Standard terms return for each new invoice.</small>
+            <button class="button button-restore" id="restoreTermsButton" type="button">Restore standard terms</button>
           </details>
         </form>
       </aside>

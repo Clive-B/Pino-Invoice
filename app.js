@@ -1,5 +1,6 @@
 const STORAGE_KEY = "porsh-invoice-v1";
 const SEQUENCE_KEY = "porsh-invoice-sequences-v1";
+const STANDARD_TERMS = "50% deposit required to commence any project.\nBalance due within the payment terms stated.\nNo final delivery until full payment is received.\nPayment details below.\nThank you for choosing Porsh Studios.";
 
 const defaultInvoice = {
   invoiceNumber: "PS-INV-2026-0047",
@@ -24,7 +25,7 @@ const defaultInvoice = {
   payeeAddress: "Accra, Ghana",
   email: "hello@porshstudios.com",
   phone: "+233 24 123 4567",
-  terms: "50% deposit required to commence any project.\nBalance due within the payment terms stated.\nNo final delivery until full payment is received.\nPayment details below.\nThank you for choosing Porsh Studios.",
+  terms: STANDARD_TERMS,
   items: [
     { description: "Cameras and Lenses", amount: 1500 },
     { description: "Drone Coverage", amount: 500 },
@@ -50,6 +51,7 @@ function loadInvoice() {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
     const invoice = saved ? { ...structuredClone(defaultInvoice), ...saved } : structuredClone(defaultInvoice);
     if (!String(invoice.currencySymbol || "").trim()) invoice.currencySymbol = "GH₵";
+    if (!String(invoice.terms || "").trim()) invoice.terms = STANDARD_TERMS;
     return invoice;
   } catch {
     return structuredClone(defaultInvoice);
@@ -197,7 +199,9 @@ function advanceInvoiceNumber(finalizedNumber) {
   const nextSerial = String(lastFinalized + 1).padStart(parsed.width, "0");
   const nextInvoiceNumber = `${parsed.prefix}${nextSerial}${parsed.suffix}`;
   state.invoiceNumber = nextInvoiceNumber;
+  state.terms = STANDARD_TERMS;
   form.elements.namedItem("invoiceNumber").value = nextInvoiceNumber;
+  form.elements.namedItem("terms").value = STANDARD_TERMS;
   renderPreview();
   saveInvoice();
   return nextInvoiceNumber;
@@ -255,6 +259,14 @@ document.querySelector("#addItemButton").addEventListener("click", () => {
   renderPreview();
   scheduleSave();
   itemEditor.lastElementChild?.querySelector("input")?.select();
+});
+
+document.querySelector("#restoreTermsButton").addEventListener("click", () => {
+  state.terms = STANDARD_TERMS;
+  form.elements.namedItem("terms").value = STANDARD_TERMS;
+  renderPreview();
+  saveInvoice();
+  showToast("The standard terms and conditions have been restored.");
 });
 
 document.querySelector("#resetButton").addEventListener("click", () => {
