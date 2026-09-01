@@ -1,10 +1,11 @@
-const CACHE_NAME = "porsh-invoice-v1";
+const CACHE_NAME = "porsh-invoice-v2";
 const APP_FILES = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
   "./manifest.webmanifest",
+  "./PORSH%20logo-01.png",
   "./PORSH%20logo-02%202.png"
 ];
 

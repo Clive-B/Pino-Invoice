@@ -1,4 +1,5 @@
 const STORAGE_KEY = "porsh-invoice-v1";
+const SEQUENCE_KEY = "porsh-invoice-sequences-v1";
 
 const defaultInvoice = {
   invoiceNumber: "PS-INV-2026-0047",
@@ -159,6 +160,47 @@ function saveInvoice() {
   saveState.textContent = "Saved locally";
 }
 
+function parseInvoiceNumber(value) {
+  const match = String(value || "").match(/^(.*?)(\d+)(\D*)$/);
+  if (!match) return null;
+  return {
+    prefix: match[1],
+    number: Number(match[2]),
+    width: match[2].length,
+    suffix: match[3]
+  };
+}
+
+function loadSequences() {
+  try {
+    return JSON.parse(localStorage.getItem(SEQUENCE_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function advanceInvoiceNumber(finalizedNumber) {
+  const parsed = parseInvoiceNumber(finalizedNumber);
+  if (!parsed || !Number.isFinite(parsed.number)) {
+    showToast("The invoice number was saved, but it needs trailing digits before it can advance automatically.");
+    return null;
+  }
+
+  const sequences = loadSequences();
+  const sequenceName = `${parsed.prefix}|${parsed.suffix}`;
+  const lastFinalized = Math.max(parsed.number, Number(sequences[sequenceName]) || 0);
+  sequences[sequenceName] = lastFinalized;
+  localStorage.setItem(SEQUENCE_KEY, JSON.stringify(sequences));
+
+  const nextSerial = String(lastFinalized + 1).padStart(parsed.width, "0");
+  const nextInvoiceNumber = `${parsed.prefix}${nextSerial}${parsed.suffix}`;
+  state.invoiceNumber = nextInvoiceNumber;
+  form.elements.namedItem("invoiceNumber").value = nextInvoiceNumber;
+  renderPreview();
+  saveInvoice();
+  return nextInvoiceNumber;
+}
+
 function scheduleSave() {
   saveState.textContent = "Saving…";
   clearTimeout(saveTimer);
@@ -224,8 +266,18 @@ document.querySelector("#resetButton").addEventListener("click", () => {
 
 document.querySelector("#pdfButton").addEventListener("click", () => {
   saveInvoice();
+  const finalizedNumber = state.invoiceNumber;
   showToast("In the print window, select “Save as PDF” or your device’s PDF option.");
-  setTimeout(() => window.print(), 250);
+  setTimeout(() => {
+    window.print();
+    const wasSaved = window.confirm(`Was invoice ${finalizedNumber} saved successfully as a PDF?\n\nChoose OK to finalize it and advance to the next invoice number.`);
+    if (!wasSaved) {
+      showToast(`Invoice number remains ${finalizedNumber}.`);
+      return;
+    }
+    const nextInvoiceNumber = advanceInvoiceNumber(finalizedNumber);
+    if (nextInvoiceNumber) showToast(`${finalizedNumber} finalized. The next invoice is ${nextInvoiceNumber}.`);
+  }, 250);
 });
 
 window.addEventListener("beforeinstallprompt", (event) => {

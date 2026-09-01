@@ -117,15 +117,12 @@ small { color: var(--muted); display: block; margin-top: -7px; margin-bottom: 12
   height: 174px;
   padding: 53px 46px 22px;
   display: grid;
-  grid-template-columns: 250px 1fr 205px;
+  grid-template-columns: 1fr 205px;
   align-items: start;
   background: linear-gradient(110deg, #f6f0ea 0%, #f3ece5 70%, #f7f2ed 100%);
 }
-.wordmark-name { font-size: 38px; letter-spacing: .33em; line-height: .95; font-weight: 400; }
-.wordmark-studios { margin-top: 9px; font-size: 16px; letter-spacing: .55em; }
-.tagline { margin-top: 8px; color: #77706f; font-size: 11px; font-style: italic; }
-.wordmark-line { display: block; margin-top: 15px; width: 41px; height: 2px; background: var(--purple); }
-.invoice-logo { width: 64px; height: 64px; object-fit: contain; justify-self: center; margin-top: -4px; mix-blend-mode: multiply; }
+.invoice-brand-logo { position: relative; width: 280px; height: 65px; overflow: hidden; margin-top: 1px; }
+.invoice-brand-logo img { position: absolute; width: 335px; height: 335px; max-width: none; left: -28px; top: -137px; object-fit: contain; }
 .invoice-title { text-align: right; color: var(--purple); padding-top: 8px; }
 .invoice-title h2 { margin: 0 0 10px; font-size: 30px; letter-spacing: .07em; }
 .invoice-title strong { display: block; color: #191622; font-size: 16px; white-space: nowrap; }

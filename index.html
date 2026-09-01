@@ -38,11 +38,12 @@
           <details open>
             <summary>Invoice</summary>
             <div class="field-grid two-columns">
-              <label>Invoice number<input name="invoiceNumber" type="text" /></label>
+              <label>Invoice number<input name="invoiceNumber" type="text" aria-describedby="invoiceNumberHint" /></label>
               <label>Currency symbol<input name="currencySymbol" type="text" maxlength="4" /></label>
               <label>Invoice date<input name="invoiceDate" type="date" /></label>
               <label>Due date<input name="dueDate" type="date" /></label>
             </div>
+            <small id="invoiceNumberHint">Advances after you confirm the PDF was saved.</small>
             <label>Payment terms<input name="paymentTerms" type="text" /></label>
           </details>
 
@@ -101,13 +102,9 @@
 
         <article class="invoice-page" id="invoicePage">
           <section class="invoice-header">
-            <div class="wordmark">
-              <div class="wordmark-name">PORSH</div>
-              <div class="wordmark-studios">STUDIOS</div>
-              <div class="tagline">We are the Architects of Aspirations.</div>
-              <span class="wordmark-line"></span>
+            <div class="invoice-brand-logo">
+              <img src="PORSH%20logo-01.png" alt="PORSH Studios" />
             </div>
-            <img class="invoice-logo" src="PORSH%20logo-02%202.png" alt="" />
             <div class="invoice-title">
               <h2>INVOICE</h2>
               <strong data-preview="invoiceNumber"></strong>
