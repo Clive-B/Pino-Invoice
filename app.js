@@ -336,5 +336,11 @@ populateForm();
 fitPreviewOnSmallScreens();
 
 if ("serviceWorker" in navigator && location.protocol !== "file:") {
-  navigator.serviceWorker.register("sw.js");
+  let refreshingForUpdate = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (refreshingForUpdate) return;
+    refreshingForUpdate = true;
+    window.location.reload();
+  });
+  navigator.serviceWorker.register("sw.js?v=6").then((registration) => registration.update());
 }

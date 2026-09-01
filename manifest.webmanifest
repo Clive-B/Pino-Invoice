@@ -2,7 +2,7 @@
   "name": "PORSH Invoice Generator",
   "short_name": "PORSH Invoice",
   "description": "Create, edit and export PORSH Studios invoices.",
-  "start_url": "./",
+  "start_url": "./?v=6",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f1eef4",

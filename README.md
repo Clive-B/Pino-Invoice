@@ -25,3 +25,5 @@ Taxes are calculated and displayed separately as NHIL, GETFund and VAT. Their pe
 - Android Chrome
 
 When supported by the browser, the app can be installed to the home screen or desktop.
+
+The service worker uses online-first updates with offline fallback, so published interface and calculation changes replace older cached versions automatically.
