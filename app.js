@@ -48,7 +48,9 @@ let installPrompt;
 function loadInvoice() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    return saved ? { ...structuredClone(defaultInvoice), ...saved } : structuredClone(defaultInvoice);
+    const invoice = saved ? { ...structuredClone(defaultInvoice), ...saved } : structuredClone(defaultInvoice);
+    if (!String(invoice.currencySymbol || "").trim()) invoice.currencySymbol = "GH₵";
+    return invoice;
   } catch {
     return structuredClone(defaultInvoice);
   }
@@ -132,7 +134,7 @@ function renderPreview() {
 
 function money(value) {
   const number = positiveNumber(value);
-  return `${state.currencySymbol || ""}${number.toLocaleString("en-GH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `${String(state.currencySymbol || "").trim() || "GH₵"}${number.toLocaleString("en-GH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 function positiveNumber(value) {
