@@ -342,5 +342,5 @@ if ("serviceWorker" in navigator && location.protocol !== "file:") {
     refreshingForUpdate = true;
     window.location.reload();
   });
-  navigator.serviceWorker.register("sw.js?v=7").then((registration) => registration.update());
+  navigator.serviceWorker.register("sw.js?v=8").then((registration) => registration.update());
 }
