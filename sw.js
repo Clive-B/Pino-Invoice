@@ -1,9 +1,9 @@
-const CACHE_NAME = "porsh-invoice-v9";
+const CACHE_NAME = "porsh-invoice-v10";
 const APP_FILES = [
   "./",
   "./index.html",
-  "./styles.css?v=9",
-  "./app.js?v=9",
+  "./styles.css?v=10",
+  "./app.js?v=10",
   "./manifest.webmanifest",
   "./PORSH%20logo-01.png",
   "./PORSH%20logo-02%202.png"
@@ -23,18 +23,27 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+  if (new URL(event.request.url).origin !== self.location.origin) return;
   event.respondWith(
-    fetch(event.request).then((response) => {
-      if (response.ok && new URL(event.request.url).origin === self.location.origin) {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+    caches.match(event.request, { ignoreSearch: event.request.mode === "navigate" }).then((cached) => {
+      const refresh = fetch(event.request).then((response) => {
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        }
+        return response;
+      }).catch(() => null);
+
+      if (cached) {
+        event.waitUntil(refresh);
+        return cached;
       }
-      return response;
-    }).catch(async () => {
-      const cached = await caches.match(event.request);
-      if (cached) return cached;
-      if (event.request.mode === "navigate") return caches.match("./index.html");
-      return Response.error();
+
+      return refresh.then((response) => {
+        if (response) return response;
+        if (event.request.mode === "navigate") return caches.match("./index.html");
+        return Response.error();
+      });
     })
   );
 });

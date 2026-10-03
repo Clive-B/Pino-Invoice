@@ -18,6 +18,12 @@ The standard terms and conditions are editable for each invoice. They are restor
 
 Taxes are calculated and displayed separately as NHIL, GETFund and VAT. Their percentage rates are editable, and the tax subtotal shows the discounted invoice amount plus the two levies before VAT is added to the total due.
 
+Each invoice item supports a number of days and a daily rate. The line amount is calculated automatically. VAT invoicing can be switched off for an invoice, which removes NHIL, GETFund and VAT from both the calculation and the exported invoice.
+
+Bank and Mobile Money payment details are editable and saved locally with the invoice draft.
+
+The document type can be switched between invoice and receipt. Receipt mode updates the document wording and hides invoice-only due-date and payment-term details in the exported PDF.
+
 ## Supported devices
 
 - macOS and Windows desktop browsers
@@ -26,4 +32,4 @@ Taxes are calculated and displayed separately as NHIL, GETFund and VAT. Their pe
 
 When supported by the browser, the app can be installed to the home screen or desktop.
 
-The service worker uses online-first updates with offline fallback, so published interface and calculation changes replace older cached versions automatically.
+The service worker serves cached app files immediately and refreshes them in the background, so published changes arrive without slowing down the editor on mobile connections.

@@ -3,6 +3,7 @@ const SEQUENCE_KEY = "porsh-invoice-sequences-v1";
 const STANDARD_TERMS = "50% deposit required to commence any project.\nBalance due within the payment terms stated.\nNo final delivery until full payment is received.\nPayment details below.\nThank you for choosing Porsh Studios.";
 
 const defaultInvoice = {
+  documentType: "invoice",
   invoiceNumber: "PS-INV-2026-0047",
   currencySymbol: "GH₵",
   invoiceDate: "2026-09-01",
@@ -14,6 +15,7 @@ const defaultInvoice = {
   projectName: "Nestlé Sale Corporate Video",
   reference: "PO-45007218",
   discount: 0,
+  vatEnabled: true,
   nhilRate: 2.5,
   getFundRate: 2.5,
   taxRate: 15,
@@ -22,19 +24,22 @@ const defaultInvoice = {
   accountName: "Porsh Studios",
   accountNumber: "1231130012345",
   accountCurrency: "GHS",
+  momoProvider: "Mobile Money",
+  momoName: "Porsh Studios",
+  momoNumber: "0242743356",
   payeeName: "Porsh Studios",
   payeeAddress: "Accra, Ghana",
   email: "hello@porshstudios.com",
   phone: "+233 24 123 4567",
   terms: STANDARD_TERMS,
   items: [
-    { description: "Cameras and Lenses", amount: 1500 },
-    { description: "Drone Coverage", amount: 500 },
-    { description: "Tripod", amount: 150 },
-    { description: "Lighting Equipment", amount: 800 },
-    { description: "Camera Crew", amount: 3000 },
-    { description: "Transportation", amount: 1000 },
-    { description: "Editing & Post-Production", amount: 3500 }
+    { description: "Cameras and Lenses", days: 1, dailyRate: 1500 },
+    { description: "Drone Coverage", days: 1, dailyRate: 500 },
+    { description: "Tripod", days: 1, dailyRate: 150 },
+    { description: "Lighting Equipment", days: 1, dailyRate: 800 },
+    { description: "Camera Crew", days: 1, dailyRate: 3000 },
+    { description: "Transportation", days: 1, dailyRate: 1000 },
+    { description: "Editing & Post-Production", days: 1, dailyRate: 3500 }
   ]
 };
 
@@ -45,6 +50,7 @@ const previewItems = document.querySelector("#previewItems");
 const saveState = document.querySelector("#saveState");
 const toast = document.querySelector("#toast");
 let saveTimer;
+let renderFrame;
 let installPrompt;
 
 function loadInvoice() {
@@ -53,6 +59,8 @@ function loadInvoice() {
     const invoice = saved ? { ...structuredClone(defaultInvoice), ...saved } : structuredClone(defaultInvoice);
     if (!String(invoice.currencySymbol || "").trim()) invoice.currencySymbol = "GH₵";
     if (!String(invoice.terms || "").trim()) invoice.terms = STANDARD_TERMS;
+    invoice.vatEnabled = invoice.vatEnabled !== false;
+    invoice.items = Array.isArray(invoice.items) ? invoice.items.map(normalizeItem) : structuredClone(defaultInvoice.items);
     return invoice;
   } catch {
     return structuredClone(defaultInvoice);
@@ -63,7 +71,9 @@ function populateForm() {
   Object.entries(state).forEach(([key, value]) => {
     if (key === "items") return;
     const field = form.elements.namedItem(key);
-    if (field) field.value = value;
+    if (!field) return;
+    if (field.type === "checkbox") field.checked = Boolean(value);
+    else field.value = value;
   });
   renderItemEditor();
   renderPreview();
@@ -75,14 +85,24 @@ function renderItemEditor() {
     const row = document.createElement("div");
     row.className = "item-input-row";
     row.innerHTML = `
-      <label>Description<input type="text" data-item-field="description" data-index="${index}" value="${escapeHtml(item.description)}" aria-label="Item ${index + 1} description"></label>
-      <label>Amount<input type="number" min="0" step="0.01" data-item-field="amount" data-index="${index}" value="${numberValue(item.amount)}" aria-label="Item ${index + 1} amount"></label>
+      <label class="item-description">Description<input type="text" data-item-field="description" data-index="${index}" value="${escapeHtml(item.description)}" aria-label="Item ${index + 1} description"></label>
+      <label>Days<input type="number" min="0" step="0.5" data-item-field="days" data-index="${index}" value="${numberValue(item.days)}" aria-label="Item ${index + 1} number of days"></label>
+      <label>Daily rate<input type="number" min="0" step="0.01" data-item-field="dailyRate" data-index="${index}" value="${numberValue(item.dailyRate)}" aria-label="Item ${index + 1} daily rate"></label>
+      <div class="item-calculated"><span>Amount</span><strong>${formatNumber(itemAmount(item))}</strong></div>
       <button class="delete-item" type="button" data-delete-index="${index}" aria-label="Remove item ${index + 1}">×</button>`;
     itemEditor.append(row);
   });
 }
 
 function renderPreview() {
+  const isReceipt = state.documentType === "receipt";
+  document.querySelector("#documentTitle").textContent = isReceipt ? "RECEIPT" : "INVOICE";
+  document.querySelector("#documentNumberFieldLabel").textContent = isReceipt ? "Receipt number" : "Invoice number";
+  document.querySelector("#documentDateLabel").textContent = isReceipt ? "RECEIPT DATE" : "INVOICE DATE";
+  document.querySelector("#billToLabel").textContent = isReceipt ? "RECEIVED FROM" : "BILL TO";
+  document.querySelector("#totalLabel").textContent = isReceipt ? "AMOUNT PAID" : "TOTAL DUE";
+  document.querySelectorAll(".invoice-only").forEach((element) => { element.hidden = isReceipt; });
+
   document.querySelectorAll("[data-preview]").forEach((element) => {
     const value = state[element.dataset.preview] ?? "";
     const prefix = value ? element.dataset.prefix || "" : "";
@@ -99,28 +119,37 @@ function renderPreview() {
     const row = document.createElement("div");
     row.className = "preview-item";
     const description = document.createElement("span");
+    const days = document.createElement("span");
+    const dailyRate = document.createElement("span");
     const amount = document.createElement("span");
     description.textContent = item.description;
-    setMoney(amount, item.amount);
-    row.append(description, amount);
+    days.textContent = formatNumber(item.days, 2);
+    setMoney(dailyRate, item.dailyRate);
+    setMoney(amount, itemAmount(item));
+    row.append(description, days, dailyRate, amount);
     previewItems.append(row);
   });
 
   if (!state.items.length) {
     const empty = document.createElement("div");
     empty.className = "preview-item";
-    empty.innerHTML = "<span>No items added</span><span>—</span>";
+    empty.innerHTML = "<span>No items added</span><span>—</span><span>—</span><span>—</span>";
     previewItems.append(empty);
   }
 
-  const subtotal = state.items.reduce((sum, item) => sum + positiveNumber(item.amount), 0);
+  const subtotal = state.items.reduce((sum, item) => sum + itemAmount(item), 0);
   const discount = positiveNumber(state.discount);
   const taxable = Math.max(0, subtotal - discount);
-  const nhil = taxable * positiveNumber(state.nhilRate) / 100;
-  const getFund = taxable * positiveNumber(state.getFundRate) / 100;
+  const taxesEnabled = state.vatEnabled !== false;
+  const nhil = taxesEnabled ? taxable * positiveNumber(state.nhilRate) / 100 : 0;
+  const getFund = taxesEnabled ? taxable * positiveNumber(state.getFundRate) / 100 : 0;
   const taxSubtotal = taxable + nhil + getFund;
-  const tax = taxable * positiveNumber(state.taxRate) / 100;
+  const tax = taxesEnabled ? taxable * positiveNumber(state.taxRate) / 100 : 0;
   const total = taxSubtotal + tax;
+
+  document.querySelector("#taxRateFields").hidden = !taxesEnabled;
+  document.querySelector("#taxHelp").hidden = !taxesEnabled;
+  document.querySelectorAll(".tax-row").forEach((row) => { row.hidden = !taxesEnabled; });
 
   setMoney(document.querySelector("#subtotalPreview"), subtotal);
   setMoney(document.querySelector("#discountPreview"), discount);
@@ -140,6 +169,14 @@ function renderPreview() {
     const item = document.createElement("li");
     item.textContent = term;
     termsPreview.append(item);
+  });
+}
+
+function schedulePreview() {
+  if (renderFrame) cancelAnimationFrame(renderFrame);
+  renderFrame = requestAnimationFrame(() => {
+    renderFrame = null;
+    renderPreview();
   });
 }
 
@@ -163,6 +200,23 @@ function positiveNumber(value) {
 
 function numberValue(value) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
+}
+
+function formatNumber(value, maximumFractionDigits = 2) {
+  return positiveNumber(value).toLocaleString("en-GH", { maximumFractionDigits });
+}
+
+function normalizeItem(item = {}) {
+  const hasDailyRate = Number.isFinite(Number(item.dailyRate));
+  return {
+    description: String(item.description || ""),
+    days: hasDailyRate ? positiveNumber(item.days) : 1,
+    dailyRate: hasDailyRate ? positiveNumber(item.dailyRate) : positiveNumber(item.amount)
+  };
+}
+
+function itemAmount(item) {
+  return positiveNumber(item.days) * positiveNumber(item.dailyRate);
 }
 
 function formatRate(value) {
@@ -233,8 +287,8 @@ function scheduleSave() {
 function syncField(event) {
   const field = event.target;
   if (!field.name || field.closest(".item-input-row")) return;
-  state[field.name] = field.type === "number" ? positiveNumber(field.value) : field.value;
-  renderPreview();
+  state[field.name] = field.type === "checkbox" ? field.checked : field.type === "number" ? positiveNumber(field.value) : field.value;
+  schedulePreview();
   scheduleSave();
 }
 
@@ -256,8 +310,10 @@ itemEditor.addEventListener("input", (event) => {
   const field = event.target;
   const index = Number(field.dataset.index);
   if (!Number.isInteger(index) || !state.items[index]) return;
-  state.items[index][field.dataset.itemField] = field.dataset.itemField === "amount" ? positiveNumber(field.value) : field.value;
-  renderPreview();
+  state.items[index][field.dataset.itemField] = field.dataset.itemField === "description" ? field.value : positiveNumber(field.value);
+  const calculated = field.closest(".item-input-row")?.querySelector(".item-calculated strong");
+  if (calculated) calculated.textContent = formatNumber(itemAmount(state.items[index]));
+  schedulePreview();
   scheduleSave();
 });
 
@@ -271,7 +327,7 @@ itemEditor.addEventListener("click", (event) => {
 });
 
 document.querySelector("#addItemButton").addEventListener("click", () => {
-  state.items.push({ description: "New item", amount: 0 });
+  state.items.push({ description: "New item", days: 1, dailyRate: 0 });
   renderItemEditor();
   renderPreview();
   scheduleSave();
@@ -298,16 +354,17 @@ document.querySelector("#resetButton").addEventListener("click", () => {
 document.querySelector("#pdfButton").addEventListener("click", () => {
   saveInvoice();
   const finalizedNumber = state.invoiceNumber;
+  const documentName = state.documentType === "receipt" ? "receipt" : "invoice";
   showToast("In the print window, select “Save as PDF” or your device’s PDF option.");
   setTimeout(() => {
     window.print();
-    const wasSaved = window.confirm(`Was invoice ${finalizedNumber} saved successfully as a PDF?\n\nChoose OK to finalize it and advance to the next invoice number.`);
+    const wasSaved = window.confirm(`Was ${documentName} ${finalizedNumber} saved successfully as a PDF?\n\nChoose OK to finalize it and advance to the next document number.`);
     if (!wasSaved) {
       showToast(`Invoice number remains ${finalizedNumber}.`);
       return;
     }
     const nextInvoiceNumber = advanceInvoiceNumber(finalizedNumber);
-    if (nextInvoiceNumber) showToast(`${finalizedNumber} finalized. The next invoice is ${nextInvoiceNumber}.`);
+    if (nextInvoiceNumber) showToast(`${finalizedNumber} finalized. The next document number is ${nextInvoiceNumber}.`);
   }, 250);
 });
 
@@ -340,15 +397,16 @@ function fitPreviewOnSmallScreens() {
 }
 
 window.addEventListener("resize", fitPreviewOnSmallScreens);
+window.addEventListener("pagehide", () => {
+  clearTimeout(saveTimer);
+  saveInvoice();
+});
 populateForm();
 fitPreviewOnSmallScreens();
 
 if ("serviceWorker" in navigator && location.protocol !== "file:") {
-  let refreshingForUpdate = false;
   navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (refreshingForUpdate) return;
-    refreshingForUpdate = true;
-    window.location.reload();
+    showToast("The app has been updated. Your current invoice is safe.");
   });
-  navigator.serviceWorker.register("sw.js?v=9").then((registration) => registration.update());
+  navigator.serviceWorker.register("sw.js?v=10").then((registration) => registration.update());
 }

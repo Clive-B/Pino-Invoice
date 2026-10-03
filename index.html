@@ -7,7 +7,7 @@
     <meta name="description" content="Create and export PORSH Studios invoices as PDF." />
     <title>PORSH Invoice Generator</title>
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css?v=9" />
+    <link rel="stylesheet" href="styles.css?v=10" />
   </head>
   <body>
     <header class="app-bar no-print">
@@ -38,7 +38,13 @@
           <details open>
             <summary>Invoice</summary>
             <div class="field-grid two-columns">
-              <label>Invoice number<input name="invoiceNumber" type="text" aria-describedby="invoiceNumberHint" /></label>
+              <label>Document type
+                <select name="documentType">
+                  <option value="invoice">Invoice</option>
+                  <option value="receipt">Receipt</option>
+                </select>
+              </label>
+              <label><span id="documentNumberFieldLabel">Invoice number</span><input name="invoiceNumber" type="text" aria-describedby="invoiceNumberHint" /></label>
               <label>Currency symbol
                 <span class="currency-field" aria-label="GH₵, Ghana cedi"><span aria-hidden="true">GH<span class="cedi-mark">C</span></span></span>
                 <input name="currencySymbol" type="hidden" value="GH₵" />
@@ -69,13 +75,20 @@
 
           <details>
             <summary>Totals & notes</summary>
-            <div class="field-grid two-columns">
-              <label>Discount<input name="discount" type="number" min="0" step="0.01" /></label>
+            <label class="toggle-field">
+              <span>
+                <strong>VAT invoice</strong>
+                <small>Include NHIL, GETFund and VAT on this invoice.</small>
+              </span>
+              <input name="vatEnabled" type="checkbox" role="switch" />
+            </label>
+            <label>Discount<input name="discount" type="number" min="0" step="0.01" /></label>
+            <div class="field-grid two-columns" id="taxRateFields">
               <label>NHIL rate (%)<input name="nhilRate" type="number" min="0" step="0.01" /></label>
               <label>GETFund rate (%)<input name="getFundRate" type="number" min="0" step="0.01" /></label>
               <label>VAT rate (%)<input name="taxRate" type="number" min="0" step="0.01" /></label>
             </div>
-            <small>Each levy and VAT amount is calculated automatically.</small>
+            <small id="taxHelp">Each levy and VAT amount is calculated automatically.</small>
             <label>Notes<textarea name="notes" rows="3"></textarea></label>
           </details>
 
@@ -85,6 +98,10 @@
             <label>Account name<input name="accountName" type="text" /></label>
             <label>Account number<input name="accountNumber" type="text" /></label>
             <label>Account currency<input name="accountCurrency" type="text" /></label>
+            <h3 class="editor-subheading">Mobile Money</h3>
+            <label>MoMo provider<input name="momoProvider" type="text" placeholder="e.g. MTN MoMo" /></label>
+            <label>MoMo account name<input name="momoName" type="text" /></label>
+            <label>MoMo number<input name="momoNumber" type="tel" inputmode="tel" /></label>
           </details>
 
           <details open>
@@ -114,7 +131,7 @@
               <span class="logo-slice logo-studios"><img src="PORSH%20logo-01.png" alt="" /></span>
             </div>
             <div class="invoice-title">
-              <h2>INVOICE</h2>
+              <h2 id="documentTitle">INVOICE</h2>
               <strong data-preview="invoiceNumber"></strong>
             </div>
           </section>
@@ -122,7 +139,7 @@
           <div class="invoice-body">
             <section class="party-grid">
               <div class="party-block bill-to">
-                <h3>BILL TO</h3>
+                <h3 id="billToLabel">BILL TO</h3>
                 <strong data-preview="clientName"></strong>
                 <p data-preview="clientAttention" data-prefix="Attn: "></p>
                 <p class="pre-line" data-preview="clientAddress"></p>
@@ -134,18 +151,22 @@
                 <p data-preview="reference"></p>
               </div>
               <div class="party-block date-block">
-                <h3>INVOICE DATE</h3>
+                <h3 id="documentDateLabel">INVOICE DATE</h3>
                 <p data-preview-date="invoiceDate"></p>
-                <h3>DUE DATE</h3>
-                <p data-preview-date="dueDate"></p>
-                <h3>PAYMENT TERMS</h3>
-                <p data-preview="paymentTerms"></p>
+                <div class="invoice-only">
+                  <h3>DUE DATE</h3>
+                  <p data-preview-date="dueDate"></p>
+                  <h3>PAYMENT TERMS</h3>
+                  <p data-preview="paymentTerms"></p>
+                </div>
               </div>
             </section>
 
             <section class="items-section">
               <div class="items-heading">
                 <span>DESCRIPTION</span>
+                <span>DAYS</span>
+                <span>DAILY RATE</span>
                 <span>AMOUNT (GHS)</span>
               </div>
               <div id="previewItems" class="preview-items"></div>
@@ -155,12 +176,12 @@
               <dl>
                 <div><dt>ITEMS SUBTOTAL</dt><dd id="subtotalPreview"></dd></div>
                 <div><dt>DISCOUNT</dt><dd id="discountPreview"></dd></div>
-                <div><dt id="nhilLabel">NHIL (2.5%)</dt><dd id="nhilPreview"></dd></div>
-                <div><dt id="getFundLabel">GETFUND (2.5%)</dt><dd id="getFundPreview"></dd></div>
-                <div class="tax-subtotal-row"><dt>TAX SUBTOTAL</dt><dd id="taxSubtotalPreview"></dd></div>
-                <div><dt id="taxLabel">VAT (15%)</dt><dd id="taxPreview"></dd></div>
+                <div class="tax-row"><dt id="nhilLabel">NHIL (2.5%)</dt><dd id="nhilPreview"></dd></div>
+                <div class="tax-row"><dt id="getFundLabel">GETFUND (2.5%)</dt><dd id="getFundPreview"></dd></div>
+                <div class="tax-row tax-subtotal-row"><dt>TAX SUBTOTAL</dt><dd id="taxSubtotalPreview"></dd></div>
+                <div class="tax-row"><dt id="taxLabel">VAT (15%)</dt><dd id="taxPreview"></dd></div>
               </dl>
-              <div class="total-row"><span>TOTAL DUE</span><strong id="totalPreview"></strong></div>
+              <div class="total-row"><span id="totalLabel">TOTAL DUE</span><strong id="totalPreview"></strong></div>
             </section>
 
             <section class="notes-section">
@@ -176,6 +197,10 @@
                   <div><dt>Account Name:</dt><dd data-preview="accountName"></dd></div>
                   <div><dt>Account Number:</dt><dd data-preview="accountNumber"></dd></div>
                   <div><dt>Currency:</dt><dd data-preview="accountCurrency"></dd></div>
+                  <div class="payment-subheading"><dt>Mobile Money</dt><dd></dd></div>
+                  <div><dt>Provider:</dt><dd data-preview="momoProvider"></dd></div>
+                  <div><dt>MoMo Name:</dt><dd data-preview="momoName"></dd></div>
+                  <div><dt>MoMo Number:</dt><dd data-preview="momoNumber"></dd></div>
                 </dl>
               </div>
               <div>
@@ -196,6 +221,6 @@
     </main>
 
     <div class="toast no-print" id="toast" role="status" aria-live="polite"></div>
-    <script src="app.js?v=9"></script>
+    <script src="app.js?v=10"></script>
   </body>
 </html>
